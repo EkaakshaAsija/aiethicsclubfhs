@@ -249,9 +249,10 @@
   var makeRank = function () {
     var el = $("#rankChart");
     if (!el || !hasChart) return;
+    var thin = window.matchMedia("(max-width:640px)").matches;
     rankChart = new Chart(el.getContext("2d"), {
       type: "bar",
-      data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderRadius: 7, borderSkipped: false, barThickness: 18 }] },
+      data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderRadius: 7, borderSkipped: false, barThickness: thin ? 14 : 18 }] },
       options: {
         indexAxis: "y", responsive: true, maintainAspectRatio: false,
         animation: { duration: 420 },
@@ -269,8 +270,8 @@
           }
         },
         scales: {
-          x: { beginAtZero: true, grid: { color: LINE }, border: { display: false }, ticks: { color: INK3, font: { size: 11 } } },
-          y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, font: { size: 12, weight: "600" } } }
+          x: { beginAtZero: true, grid: { color: LINE }, border: { display: false }, ticks: { color: INK3, font: { size: 11 }, maxTicksLimit: 5 } },
+          y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, font: { size: 12, weight: "600" }, autoSkip: false } }
         }
       }
     });
@@ -735,7 +736,12 @@
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeDrawer(); return; }
+    if (e.key === "Escape") {
+      closeDrawer();
+      var sh = $(".shell");
+      if (sh) sh.classList.remove("nav-open");
+      return;
+    }
     if (e.key === "Enter" && e.target && e.target.closest) {
       var t = e.target.closest('[data-open][tabindex]');
       if (t) { e.preventDefault(); openDrawer(t.getAttribute("data-open")); }
@@ -752,6 +758,19 @@
   if (sideToggle && shell) {
     sideToggle.addEventListener("click", function () { shell.classList.toggle("collapsed"); });
   }
+  var menuBtn = $("#menuBtn"), sideX = $("#sideX"), sideVeil = $("#sideVeil");
+  var closeNav = function () { if (shell) shell.classList.remove("nav-open"); };
+  var openNav = function () { if (shell) shell.classList.add("nav-open"); };
+  if (menuBtn) menuBtn.addEventListener("click", function () {
+    if (shell.classList.contains("nav-open")) { closeNav(); } else { openNav(); }
+  });
+  if (sideX) sideX.addEventListener("click", closeNav);
+  if (sideVeil) sideVeil.addEventListener("click", closeNav);
+  $$(".side-nav .nav-item").forEach(function (a) {
+    a.addEventListener("click", function () {
+      if (window.matchMedia("(max-width:1024px)").matches) closeNav();
+    });
+  });
   var labq = $("#labq");
   if (labq) {
     labq.addEventListener("input", function () { state.q = labq.value; renderTable(); });
